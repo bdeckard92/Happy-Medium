@@ -23,7 +23,7 @@ $(document).ready(function() {
         var mapCanvas = $("#mapArea");
         var mapOptions = {
             center: new google.maps.LatLng(30.2746652, -97.742191),
-            zoom: 15,
+            zoom: 14,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var acOptions = {
@@ -35,7 +35,7 @@ $(document).ready(function() {
         // bindTo is to limit the auto-complete to the bounds of the map
         autocomplete.bindTo('bounds', newMap);
         var infoWindowOptions = {
-            content: 'BC Testing!'
+            // content: 'BC Testing!'
         };
         var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
 
@@ -53,7 +53,7 @@ $(document).ready(function() {
                 newMap.fitBounds(place.geometry.viewport);
             } else {
                 newMap.setCenter(place.geometry.location);
-                newMap.setZoom(17);
+                newMap.setZoom(15);
             }
             marker.setPosition(place.geometry.location);
             infoWindow.setContent('<div><strong>' + place.name + '</strong><br>');
@@ -70,13 +70,28 @@ $(document).ready(function() {
     myMap();
 
 
-
+    // < div class = "chip" >
+    // Tag <i class = "close material-icons" > close < /i> <
+    // /div>
 
 
     $(document).on("click", "#submitButton", function() {
-        var address1 = $("#topSearch").val();
+        var address1 = $("#topSearch").val().trim();
         console.log(address1);
+        var newAddress = $("<li>");
+        var newDiv = $("<div>");
+        var newIcon = $("<i>");
 
+        newDiv.addClass("chip");
+        // adding the "x" next to starting locations
+        newIcon.addClass("close material-icons");
+        newIcon.text("close");
+        newDiv.text(address1);
+        newDiv.append(newIcon);
+        newAddress.html(newDiv);
+        // newAddress.text(address1);
+
+        $("#startingLocationArea").prepend(newAddress);
         // empty input box after submit is clicked
         $("#topSearch").val("");
     });
