@@ -10,12 +10,12 @@ $(document).ready(function() {
         alignment: 'left' // Displays dropdown with edge aligned to the left of button
     });
     var config = {
-        apiKey: "AIzaSyAFIjT_UyFOjm-JaoZNPDj1PQ7jkuvWVEo",
-        authDomain: "happymedium-e5e46.firebaseapp.com",
-        databaseURL: "https://happymedium-e5e46.firebaseio.com",
-        storageBucket: "happymedium-e5e46.appspot.com",
-        messagingSenderId: "620164528731"
-    };
+    apiKey: "AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8",
+    authDomain: "happy-medium-152501.firebaseapp.com",
+    databaseURL: "https://happy-medium-152501.firebaseio.com",
+    storageBucket: "happy-medium-152501.appspot.com",
+    messagingSenderId: "37679856259"
+  };
     firebase.initializeApp(config);
 
     // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
