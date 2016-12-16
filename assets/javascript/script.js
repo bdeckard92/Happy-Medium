@@ -27,12 +27,12 @@ $(document).ready(function() {
     var connectionsRef = database.ref("/connections");
     // database reference for everyone
     var connectedRef = database.ref(".info/connected");
-
     // Add ourselves to presence list when online.
     connectedRef.on("value", function(snap) {
         if (snap.val()) {
             var con = connectionsRef.push(true);
             con.onDisconnect().remove();
+            userConnection = database.ref('/connections/' + con.key);
         }
 
     });
@@ -98,12 +98,11 @@ $(document).ready(function() {
 
         controlDiv.index = 1;
         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
-    }
+    } // end of my location button function
 
 
 
 
-    // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
     function myMap() {
         var mapCanvas = $("#mapArea");
         var mapOptions = {
@@ -121,9 +120,9 @@ $(document).ready(function() {
         // bindTo is to limit the auto-complete to the bounds of the map
         autocomplete.bindTo('bounds', newMap);
         var infoWindowOptions = {
-            // content: 'BC Testing!'
+            // content:
         };
-        var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+        var infoWindow = new google.maps.InfoWindow();
 
 
 
@@ -132,6 +131,7 @@ $(document).ready(function() {
         };
         var marker = new google.maps.Marker(markerOptions);
         marker.setMap(newMap);
+
 
 
         google.maps.event.addListener(autocomplete, 'place_changed', function() {
@@ -158,12 +158,6 @@ $(document).ready(function() {
 
     myMap();
 
-
-    // < div class = "chip" >
-    // Tag <i class = "close material-icons" > close < /i> <
-    // /div>
-
-
     $(document).on("click", "#submitButton", function() {
         var address1 = $("#topSearch").val().trim();
         console.log(address1);
@@ -179,6 +173,10 @@ $(document).ready(function() {
         newDiv.append(newIcon);
         newAddress.html(newDiv);
         // newAddress.text(address1);
+
+        userConnection.push({
+          address: address1
+        });
 
         $("#startingLocationArea").prepend(newAddress);
         // empty input box after submit is clicked
