@@ -45,7 +45,6 @@ $(document).ready(function() {
 		// THIS WILL IS THE LOCATION BUTTON
     function addYourLocationButton(map, marker) {
         var controlDiv = document.createElement('div');
-
         var firstChild = document.createElement('button');
         firstChild.style.backgroundColor = '#fff';
         firstChild.style.border = 'none';
@@ -183,6 +182,14 @@ $(document).ready(function() {
         $("#topSearch").val("");
     });
 
+    // PULL ADDRESS DATA FROM FIREBASE
+    // database.ref().on("child_added", function(snap) {
+    //        console.log(sanp.val());
+    //        var newList = $("<li>" + snap.val().address1 + "</li>");
+    //
+    //        $("#startingLocationArea").append(newList);
+    //
+    //    });
 
 
 
