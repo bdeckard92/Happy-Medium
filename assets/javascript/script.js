@@ -18,6 +18,35 @@ $(document).ready(function() {
   };
     firebase.initializeApp(config);
 
+    // Create a variable to reference the database.
+    var database = firebase.database();
+
+    // --------------------------------------------------------------
+    // Link to Firebase Database for viewer tracking
+    // database reference for us
+    var connectionsRef = database.ref("/connections");
+    // database reference for everyone
+    var connectedRef = database.ref(".info/connected");
+
+    // Add ourselves to presence list when online.
+    connectedRef.on("value", function(snap){
+      if(snap.val()){
+        var con = connectionsRef.push(true);
+        con.onDisconnect().remove();
+      }
+
+    });
+
+    // Number of online users is the number of objects in the presence list.
+    connectionsRef.on("value", function(snap){
+      $("#connected-viewers").html(snap.numChildren());
+    });
+
+
+
+
+
+
     // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
     function myMap() {
         var mapCanvas = $("#mapArea");
