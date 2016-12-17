@@ -38,8 +38,8 @@ $(document).ready(function() {
 
             //console.log(pos.lat + ", " + pos.lng);
             database.ref("/locations").set({
-                lat: pos.lat+.06,
-                lng: pos.lng+.07,
+                lat: pos.lat+0.06,
+                lng: pos.lng+0.07,
             });
 
             var mapCanvas = $("#mapArea");
@@ -64,6 +64,13 @@ $(document).ready(function() {
             };
             var marker = new google.maps.Marker(markerOptions);
             marker.setMap(newMap);
+
+            /*markerOptions = {
+                position: new google.maps.LatLng(pos.lat+0.06, pos.lng+0.07),
+                label: "C"
+            };
+            marker = new google.maps.Marker(markerOptions);
+            marker.setMap(newMap);*/
 
             google.maps.event.addListener(autocomplete, 'place_changed', function() {
                 infoWindow.close();
@@ -95,16 +102,34 @@ $(document).ready(function() {
         };
         marker = new google.maps.Marker(markerOptions);
         marker.setMap(newMap);
+
+        //getDistanceInfo(pos.lat,pos.lng,lat,lng);
+    }
+
+    function getDistanceInfo(poslat,poslng,lat,lng) {
+        $.ajax({
+            type: "POST",
+            url:'https://maps.googleapis.com/maps/api/directions/json?origin=' + poslat + ',' + poslng + '&destination=' + lat + ',' + lng + '&key=AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8',
+            /*data: 'origin=' + poslat + ',' + poslng
+                    + '&destination=' + lat + ',' + lng
+                    + '&key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE',*/
+            success: function(text){
+                console.log(text);
+            }
+        });
     }
     // < div class = "chip" >
     // Tag <i class = "close material-icons" > close < /i> <
     // /div>
 
-    database.ref().on("child_added", function(snapshot) {
-        if (snapshot.child("locations").exists()) {
-            addMarker(parseFloat(snapshot.val().lat),parseFloat(snapshot.val().lng));
-        }
-    });
+    setTimeout(function(){
+        database.ref("/locations").on("value", function(snapshot) {
+            //console.log(typeof snapshot.val().lat);
+            if (snapshot.child("lat").exists()) {
+                addMarker(snapshot.val().lat,snapshot.val().lng);
+            }
+        });
+    }, 100);
 
     $(document).on("click", "#submitButton", function() {
         var address1 = $("#topSearch").val().trim();
