@@ -44,15 +44,9 @@ $(document).ready(function() {
                 lat: pos.lat+0.06,
                 lng: pos.lng+0.07,
             });
-
             database.ref("/locations_map").push({
                 lat: pos.lat+0.023,
                 lng: pos.lng+0.093,
-            });
-
-            database.ref("/locations_map").push({
-                lat: 30.355136899999997,
-                lng: -97.26405040000001,
             });*/
 
             var mapCanvas = $("#mapArea");
@@ -71,22 +65,7 @@ $(document).ready(function() {
             // bindTo is to limit the auto-complete to the bounds of the map
             autocomplete.bindTo('bounds', newMap);
 
-            /*var markerOptions = {
-                position: new google.maps.LatLng(pos.lat, pos.lng),
-                label: count+''
-            };
-            mapArray[count-1] = new Array(pos.lat, pos.lng);
-            count++;
-            var marker = new google.maps.Marker(markerOptions);
-            marker.setMap(newMap);*/
             addMarker(pos.lat,pos.lng);
-
-            /*markerOptions = {
-                position: new google.maps.LatLng(pos.lat+0.06, pos.lng+0.07),
-                label: "C"
-            };
-            marker = new google.maps.Marker(markerOptions);
-            marker.setMap(newMap);*/
 
             google.maps.event.addListener(autocomplete, 'place_changed', function() {
                 infoWindow.close();
@@ -115,41 +94,60 @@ $(document).ready(function() {
     function addMarker(lat,lng) {
         markerOptions = {
             position: new google.maps.LatLng(lat,lng),
+            draggable:true,
             label: count+''
         };
-        mapArray[count-1] = new Array(lat, lng);
-        console.log(lat + ',' + lng);
+        //var c = count;
+        mapArray[count-1] = new Array(count, lat, lng);
+        //console.log(lat + ',' + lng + ' - ' + count);
         count++;
         marker = new google.maps.Marker(markerOptions);
         marker.setMap(newMap);
-        //getMedium();
-        //getDistanceInfo(pos.lat,pos.lng,lat,lng);
+
+        google.maps.event.addListener(marker, 'dragend', function (event) {
+            //console.log(this.getPosition().lat() + ',' + this.getPosition().lng());
+            userChangePosition(this.label,this.getPosition().lat(),this.getPosition().lng());
+            //getMedium();
+        });
+
+        getMedium();
     }
 
-    function getDistanceInfo(poslat,poslng,lat,lng) {
+    function userChangePosition(c, la, lo) {
+        //console.log(c + ',' + la + ',' + lo);
+        mapArray[parseInt(c)-1] = new Array(parseInt(c), la, lo);
+        database.ref("/locations_map").on("child_added", function(snapshot) {
+            //console.log(typeof c + ',' + typeof snapshot.val().user);
+            //console.log(c + ',' + la + ',' + lo);
+            if(parseInt(c)+1 === snapshot.val().user) {
+                snapshot.ref.update({
+                    lat: la,
+                    lng: lo
+                });
+            }
+        });
+        getMedium();
+    }
+
+    /*function getDistanceInfo(lat,lng) {
         $.ajax({
             type: "POST",
-            url:'https://maps.googleapis.com/maps/api/directions/json?origin=' + poslat + ',' + poslng + '&destination=' + lat + ',' + lng + '&key=AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8',
-            /*data: 'origin=' + poslat + ',' + poslng
-                    + '&destination=' + lat + ',' + lng
-                    + '&key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE',*/
+            //url:'https://maps.googleapis.com/maps/api/place/json?origin=' + poslat + ',' + poslng + '&destination=' + lat + ',' + lng + '&key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE',
+            url:'https://maps.googleapis.com/maps/api/place/radarsearch/json?location=' + lat + ',' + lng + '&radius=500&type=restaurants&key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE',
             success: function(text){
                 console.log(text);
             }
         });
-    }
-    // < div class = "chip" >
-    // Tag <i class = "close material-icons" > close < /i> <
-    // /div>
+    }*/
 
-    setTimeout(function(){
-        database.ref("/locations_map").on("child_added", function(snapshot) {
-            //console.log(typeof snapshot.val().lat);
-            //if (snapshot.child().exists()) {
-                addMarker(snapshot.val().lat,snapshot.val().lng);
-            //}
-        });
-    }, 100);
+    database.ref("/locations_map").on("child_added", function(snapshot) {
+        addMarker(snapshot.val().lat,snapshot.val().lng);
+        //console.log(snapshot.val());
+    });
+
+    database.ref("/locations_map").on("value", function(snapshot) {
+        getMedium();
+    });
 
     function getMedium() {
         if(xloc != null) {
@@ -161,36 +159,35 @@ $(document).ready(function() {
 
         for(var i=0;i<mapArray.length;i++) {
         //for (var i in mapArray) {
-            avgLat = (avgLat + mapArray[i][0]);
-            avgLng = (avgLng + mapArray[i][1]);
+            avgLat = (avgLat + mapArray[i][1]);
+            avgLng = (avgLng + mapArray[i][2]);
             //console.log(i);
             j++;
         }
         avgLat = avgLat / j;
         avgLng = avgLng / j;
-        console.log(avgLat + ',' + avgLng);
+        //console.log(avgLat + ',' + avgLng + ' - X');
         //addMarker(avgLat,avgLng);
 
         var markerOptions2 = {
             position: new google.maps.LatLng(avgLat,avgLng),
-            label: 'X'
+            //label: 'X'
         };
         var marker2 = new google.maps.Marker(markerOptions2);
+        marker2.setAnimation(google.maps.Animation.BOUNCE);
         marker2.setMap(newMap);
-        marker2.metadata = { id: markerId };
+        //marker2.metadata = { id: markerId };
         xloc = marker2;
+
+        //getDistanceInfo(avgLat,avgLng);
     }
 
-    setTimeout(function(){
-        getMedium();
-    }, 500);
-
-    setTimeout(function(){
+    /*setTimeout(function(){
         database.ref("/locations_map").push({
-            lat: 30.315136899999998,
-            lng: -97.38405040000001,
+            lat: 30.3151369,
+            lng: -97.3840504,
         });
-    }, 5000);
+    }, 5000);*/
 
     $(document).on("click", "#submitButton", function() {
         var address1 = $("#topSearch").val().trim();
