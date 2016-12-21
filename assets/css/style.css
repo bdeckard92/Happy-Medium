@@ -24,3 +24,6 @@ nav ul a:hover {
   height: auto;
   overflow: auto;
 }
+.type {
+  font-color: blue;
+}
