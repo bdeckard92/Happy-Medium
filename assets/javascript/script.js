@@ -22,10 +22,44 @@ $(document).ready(function() {
 
     var database = firebase.database();
 
+
+    $(".command").click(function(){
+        $(this).text();
+        console.log($(this).text());
+    });
+        
+        
+    
+
+
+    var placeType = ["Pizza", "Asian", "Coffee", "Italian", "Home-Style", "Steakhouse", "Burgers", "Sandwich Shop", "Ice Cream", "Pie"];
+    console.log(placeType);
+    function renderButtons(){
+
+        for (var i = 0; i < placeType.length; i++){
+            //var typeButton= $("<li class="type"><a>"+placeType[i] +"</a></li>");
+
+            /*typeButton.addclass("type-button");
+
+            typeButton.attr("data-type", placeType[i]);
+            typeButton.text(placeType[i]);*/
+
+            $("#dropdown2").append("<li class='type'><a>"+placeType[i] +"</a></li>");
+        }
+        $(".type").click(function(){
+            $(this).text();
+            console.log($(this).text());
+        });
+
+}
+
+
+    renderButtons();
     // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
     var pos;
     var newMap;
     var mapOptions;
+
     function myMap() {
         var infoWindowOptions = {
             // content: 'BC Testing!'
@@ -65,7 +99,7 @@ $(document).ready(function() {
             // bindTo is to limit the auto-complete to the bounds of the map
             autocomplete.bindTo('bounds', newMap);
 
-            addMarker(pos.lat,pos.lng);
+            addMarker(pos.lat, pos.lng);
 
             google.maps.event.addListener(autocomplete, 'place_changed', function() {
                 infoWindow.close();
@@ -91,22 +125,22 @@ $(document).ready(function() {
 
     myMap();
 
-    function addMarker(lat,lng) {
+    function addMarker(lat, lng) {
         markerOptions = {
-            position: new google.maps.LatLng(lat,lng),
-            draggable:true,
-            label: count+''
+            position: new google.maps.LatLng(lat, lng),
+            draggable: true,
+            label: count + ''
         };
         //var c = count;
-        mapArray[count-1] = new Array(count, lat, lng);
+        mapArray[count - 1] = new Array(count, lat, lng);
         //console.log(lat + ',' + lng + ' - ' + count);
         count++;
         marker = new google.maps.Marker(markerOptions);
         marker.setMap(newMap);
 
-        google.maps.event.addListener(marker, 'dragend', function (event) {
+        google.maps.event.addListener(marker, 'dragend', function(event) {
             //console.log(this.getPosition().lat() + ',' + this.getPosition().lng());
-            userChangePosition(this.label,this.getPosition().lat(),this.getPosition().lng());
+            userChangePosition(this.label, this.getPosition().lat(), this.getPosition().lng());
             //getMedium();
         });
 
@@ -115,11 +149,11 @@ $(document).ready(function() {
 
     function userChangePosition(c, la, lo) {
         //console.log(c + ',' + la + ',' + lo);
-        mapArray[parseInt(c)-1] = new Array(parseInt(c), la, lo);
+        mapArray[parseInt(c) - 1] = new Array(parseInt(c), la, lo);
         database.ref("/locations_map").on("child_added", function(snapshot) {
             //console.log(typeof c + ',' + typeof snapshot.val().user);
             //console.log(c + ',' + la + ',' + lo);
-            if(parseInt(c)+1 === snapshot.val().user) {
+            if (parseInt(c) + 1 === snapshot.val().user) {
                 snapshot.ref.update({
                     lat: la,
                     lng: lo
@@ -141,7 +175,7 @@ $(document).ready(function() {
     }*/
 
     database.ref("/locations_map").on("child_added", function(snapshot) {
-        addMarker(snapshot.val().lat,snapshot.val().lng);
+        addMarker(snapshot.val().lat, snapshot.val().lng);
         //console.log(snapshot.val());
     });
 
@@ -150,15 +184,15 @@ $(document).ready(function() {
     });
 
     function getMedium() {
-        if(xloc != null) {
+        if (xloc != null) {
             xloc.setMap(null);
         }
         var avgLat = 0;
         var avgLng = 0;
         var j = 0;
 
-        for(var i=0;i<mapArray.length;i++) {
-        //for (var i in mapArray) {
+        for (var i = 0; i < mapArray.length; i++) {
+            //for (var i in mapArray) {
             avgLat = (avgLat + mapArray[i][1]);
             avgLng = (avgLng + mapArray[i][2]);
             //console.log(i);
@@ -170,7 +204,7 @@ $(document).ready(function() {
         //addMarker(avgLat,avgLng);
 
         var markerOptions2 = {
-            position: new google.maps.LatLng(avgLat,avgLng),
+            position: new google.maps.LatLng(avgLat, avgLng),
             //label: 'X'
         };
         var marker2 = new google.maps.Marker(markerOptions2);
