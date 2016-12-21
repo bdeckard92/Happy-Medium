@@ -1,3 +1,46 @@
+$('.g-signin2').trigger();
+var profile = '';
+var name;
+var email;
+function onSignIn(googleUser) {
+    profile = googleUser.getBasicProfile();
+    name = profile.getName();
+    //console.log('Image URL: ' + profile.getImageUrl());
+    email = profile.getEmail();
+    //initiiate();
+    $('.g-signin2').hide();
+    $('#hello').html("Hello <strong>" + name + "</strong>, start or join a room to begin.");
+}
+
+function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+        console.log('User signed out.');
+    });
+    name = null;
+    email = null;
+    $('#content').hide();
+    $('.g-signin2').show();
+    window.location = "index.html";
+}
+
+$(document).ready(function() {
+    $('#create_room').click(function() {
+        $('#content').show();
+        initiiate();
+    });
+});
+
+var config = {
+    apiKey: "AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8",
+    authDomain: "happy-medium-152501.firebaseapp.com",
+    databaseURL: "https://happy-medium-152501.firebaseio.com",
+    storageBucket: "happy-medium-152501.appspot.com",
+    messagingSenderId: "37679856259"
+};
+firebase.initializeApp(config);
+
+function initiiate() {
 var count = 1;
 var mapArray = new Array;
 var xloc = null;
@@ -11,14 +54,7 @@ $(document).ready(function() {
         belowOrigin: false, // Displays dropdown below the button
         alignment: 'left' // Displays dropdown with edge aligned to the left of button
     });
-    var config = {
-        apiKey: "AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8",
-        authDomain: "happy-medium-152501.firebaseapp.com",
-        databaseURL: "https://happy-medium-152501.firebaseio.com",
-        storageBucket: "happy-medium-152501.appspot.com",
-        messagingSenderId: "37679856259"
-    };
-    firebase.initializeApp(config);
+
 
     var database = firebase.database();
 
@@ -211,3 +247,4 @@ $(document).ready(function() {
     });
 
 }); // end of document ready
+}

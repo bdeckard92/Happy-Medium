@@ -24,3 +24,7 @@ nav ul a:hover {
   height: auto;
   overflow: auto;
 }
+
+#content {
+    display: none;
+}
