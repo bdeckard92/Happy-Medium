@@ -14,8 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
-    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script> -->
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous"> -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE&sensor=false&libraries=places"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
 
@@ -25,10 +23,10 @@
 
 <body>
     <nav id="topNav" class="white" role="navigation">
-        <div class="nav-wrapper container ">
+        <div class="nav-wrapper container">
             <a id="logo-container" href="#" class="brand-logo">Happy Medium</a>
 
-            <ul class="right hide-on-med-and-down">
+            <ul id="menu" class="right hide-on-med-and-down">
                 <li id="create_room"><a>Start a Room</a></li>
                 <li id="join_room"><a>Join a Room</a></li>
                 <li><a>About</a></li>
@@ -52,19 +50,22 @@
         </div>
     </nav>
     <br>
-
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <div class="container">
-        <div class="col-md-12">
-            <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="g-signin2" data-onsuccess="onSignIn"></div>
+            </div>
+            <div id="hello"></div>
         </div>
-        <div id="hello"></div>
         <div id="content">
             <div class="row">
-                <div class="col s4">
+                <div class="col-md-4">
                     <input type="text" class="form-control" id="topSearch" placeholder="Address of First Person">
                     <button id="submitButton" type="submit" class="waves-effect waves-light btn">Submit<i class="material-icons right">send</i></button>
                 </div>
-                <div class="col s2">
+                <div class="col-md-4">
                     <a class="dropdown-button hide-on-med-and-down" href="#!" data-activates="dropdown2">Type of Location<i class="material-icons right">arrow_drop_down</i></a>
                     <ul id="dropdown2" class="dropdown-content">
                         <li><a href="#!">Coffee Shop</a></li>
@@ -73,23 +74,19 @@
                         <li class="divider"></li>
                         <li><a href="#!">Park</a></li>
                     </ul>
-
                 </div>
-
-                <div class="col s9">
+            </div>
+            <div class="row">
+                <div class="col-md-9">
                     <div id="mapArea"></div>
-
                 </div>
-                <div class="sidebar col s3">
+                <div class="col-md-3 sidebar">
                     <div class="card-panel blue-grey lighten-4">
                         <h5>List of Starting Locations</h5>
                         <ul id="startingLocationArea">
 
                         </ul>
-
                     </div>
-                </div>
-                <div class="sidebar col s3">
                     <div class="card-panel blue-grey lighten-4">
                         <h5>List of Meeting Places Here</h5>
                         <ul>
@@ -100,13 +97,8 @@
                 </div>
             </div>
         </div>
-
-
-
     </div>
-
 </body>
-
 </html>
 
 <!-- test comment -->

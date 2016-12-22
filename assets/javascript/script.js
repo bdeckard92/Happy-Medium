@@ -1,7 +1,19 @@
+var config = {
+    apiKey: "AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8",
+    authDomain: "happy-medium-152501.firebaseapp.com",
+    databaseURL: "https://happy-medium-152501.firebaseio.com",
+    storageBucket: "happy-medium-152501.appspot.com",
+    messagingSenderId: "37679856259"
+};
+firebase.initializeApp(config);
+
 $('.g-signin2').trigger();
 var profile = '';
-var name;
-var email;
+var name = null;
+var email = null;
+var room = false;
+var room_timestamp;
+
 function onSignIn(googleUser) {
     profile = googleUser.getBasicProfile();
     name = profile.getName();
@@ -10,6 +22,7 @@ function onSignIn(googleUser) {
     //initiiate();
     $('.g-signin2').hide();
     $('#hello').html("Hello <strong>" + name + "</strong>, start or join a room to begin.");
+    room = true;
 }
 
 function signOut() {
@@ -26,21 +39,16 @@ function signOut() {
 
 $(document).ready(function() {
     $('#create_room').click(function() {
-        $('#content').show();
-        initiiate();
+        if(room) {
+            $('#content').show();
+            initiate();
+            console.log(Date.now());
+            room = false;
+        }
     });
 });
 
-var config = {
-    apiKey: "AIzaSyArprwD6qM4Z6qf8LkXaO-qBTwCwiVJSz8",
-    authDomain: "happy-medium-152501.firebaseapp.com",
-    databaseURL: "https://happy-medium-152501.firebaseio.com",
-    storageBucket: "happy-medium-152501.appspot.com",
-    messagingSenderId: "37679856259"
-};
-firebase.initializeApp(config);
-
-function initiiate() {
+function initiate() {
 var count = 1;
 var mapArray = new Array;
 var xloc = null;
@@ -74,6 +82,18 @@ $(document).ready(function() {
             };
             infoWindow.setPosition(pos);
             infoWindow.setContent('You are here.');
+
+            room_timestamp = Date.now();
+            database.ref("/room_" + room_timestamp).set({
+                created_by: name,
+                users: {
+                    user_1: {
+                        id: email,
+                        lat: pos.lat,
+                        lng: pos.lng
+                    }
+                }
+            });
 
             //console.log(pos.lat + ", " + pos.lng);
             /*database.ref("/locations_map").push({
@@ -165,18 +185,12 @@ $(document).ready(function() {
         getMedium();
     }
 
-    /*function getDistanceInfo(lat,lng) {
-        $.ajax({
-            type: "POST",
-            //url:'https://maps.googleapis.com/maps/api/place/json?origin=' + poslat + ',' + poslng + '&destination=' + lat + ',' + lng + '&key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE',
-            url:'https://maps.googleapis.com/maps/api/place/radarsearch/json?location=' + lat + ',' + lng + '&radius=500&type=restaurants&key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE',
-            success: function(text){
-                console.log(text);
-            }
-        });
-    }*/
+    /*database.ref("/locations_map").on("child_added", function(snapshot) {
+        addMarker(snapshot.val().lat,snapshot.val().lng);
+        //console.log(snapshot.val());
+    });*/
 
-    database.ref("/locations_map").on("child_added", function(snapshot) {
+    database.ref("/room_" + room_timestamp).on("child_added", function(snapshot) {
         addMarker(snapshot.val().lat,snapshot.val().lng);
         //console.log(snapshot.val());
     });
