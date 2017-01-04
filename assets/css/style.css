@@ -33,3 +33,15 @@ nav ul a:hover {
     font-size: 16px !important;
     text-decoration: none !important;
 }
+
+.navbar-collapse {
+    float: right;
+}
+
+.navbar-collapse li {
+    cursor: pointer;
+}
+
+.space {
+    margin-top: 20px;
+}

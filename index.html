@@ -8,12 +8,11 @@
     <script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
     <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
-    <!--Import Google Icon Font-->
-    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Compiled and minified CSS -->
+
+    <!--<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
-    <!-- Compiled and minified JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>-->
+
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE&sensor=false&libraries=places"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
 
@@ -22,25 +21,44 @@
 </head>
 
 <body>
-    <nav id="topNav" class="white" role="navigation">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <!-- Brand and toggle get grouped for better mobile display -->
+                        <div class="navbar-header">
+                            <a class="navbar-brand" href="#">Happy Medium</a>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                            <ul class="nav navbar-nav">
+                                <li id="create_room" class="disabled"><a>Start a Room</a></li>
+                                <li id="join_room" class="dropdown disabled">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Join a Room<span class="caret"></span></a>
+                                    <ul id="ul_join_room" class="dropdown-menu">
+                                        <li><a>No rooms created</a></li>
+                                    </ul>
+                                </li>
+                                <li><a>About</a></li>
+                                <li id="sign_out" class="disabled"><a onclick="signOut();">Sign out</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!--<nav id="topNav" class="white" role="navigation">
         <div class="nav-wrapper container">
             <a id="logo-container" href="#" class="brand-logo">Happy Medium</a>
 
             <ul id="menu" class="right hide-on-med-and-down">
                 <li id="create_room"><a>Start a Room</a></li>
-                <li id="join_room"><a>Join a Room</a></li>
+                <li id="join_room" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown">Join a Room</a><ul id="ul_join_room" class="dropdown-menu"></ul></li>
                 <li><a>About</a></li>
                 <li><a onclick="signOut();">Sign out</a></li>
-
-                <!-- <li><a id="topdropdown" class="dropdown-button hide-on-med-and-down" href="#!" data-activates="topdropdown1">Type of Location<i class="material-icons right">arrow_drop_down</i></a>
-                    <ul id="topdropdown1" class="dropdown-content">
-                        <li><a href="#!">Coffee Shop</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#!">Restaurant</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#!">Park</a></li>
-                    </ul>
-                </li> -->
             </ul>
 
             <ul id="nav-mobile" class="side-nav" style="transform: translateX(-100%);">
@@ -48,7 +66,7 @@
             </ul>
             <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
         </div>
-    </nav>
+    </nav>-->
     <br>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -61,23 +79,31 @@
         </div>
         <div id="content">
             <div class="row">
-                <div class="col-md-4">
+                <!--<div class="col-md-4">
                     <input type="text" class="form-control" id="topSearch" placeholder="Address of First Person">
                     <button id="submitButton" type="submit" class="waves-effect waves-light btn">Submit<i class="material-icons right">send</i></button>
-                </div>
+                </div>-->
                 <div class="col-md-4">
-                    <a class="dropdown-button hide-on-med-and-down" href="#!" data-activates="dropdown2">Type of Location<i class="material-icons right">arrow_drop_down</i></a>
+                    <!--<a class="dropdown-button hide-on-med-and-down" href="#!" data-activates="dropdown2">Type of Location<i class="material-icons right">arrow_drop_down</i></a>
                     <ul id="dropdown2" class="dropdown-content">
                         <li><a href="#!">Coffee Shop</a></li>
                         <li class="divider"></li>
                         <li><a href="#!">Restaurant</a></li>
                         <li class="divider"></li>
                         <li><a href="#!">Park</a></li>
-                    </ul>
+                    </ul>-->
+                    <div class="dropdown">
+                        <button class="btn btn-default dropdown-toggle" type="button" id="type_location" data-toggle="dropdown">Type of Location <span class="caret"></span></button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="type_location">
+                            <li role="presentation"><a role="menuitem">Coffee Shop</a></li>
+                            <li role="presentation"><a role="menuitem">Restaurant</a></li>
+                            <li role="presentation"><a role="menuitem">Park</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-9">
+                <div class="col-md-9 space">
                     <div id="mapArea"></div>
                 </div>
                 <div class="col-md-3 sidebar">

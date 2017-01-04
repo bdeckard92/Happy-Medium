@@ -6,6 +6,17 @@ var config = {
     messagingSenderId: "37679856259"
 };
 firebase.initializeApp(config);
+var database = firebase.database();
+
+/*$(document).ready(function() {
+    $('#join_room').hover(function() {
+        $('#ul_join_room').show();
+    });
+
+    $('#ul_join_room').on("mouseout", function() {
+        $('#ul_join_room').hide();
+    });
+});*/
 
 $('.g-signin2').trigger();
 var profile = '';
@@ -13,6 +24,15 @@ var name = null;
 var email = null;
 var room = false;
 var room_timestamp;
+var room_reference;
+var count = 1;
+var xloc = null;
+var mapArray = new Array;
+var pos;
+var newMap;
+var mapOptions;
+
+var marker_first = 0;
 
 function onSignIn(googleUser) {
     profile = googleUser.getBasicProfile();
@@ -23,7 +43,36 @@ function onSignIn(googleUser) {
     $('.g-signin2').hide();
     $('#hello').html("Hello <strong>" + name + "</strong>, start or join a room to begin.");
     room = true;
+
+    $('#create_room').removeClass("disabled");
+    $('#join_room').removeClass("disabled");
+    $('#sign_out').removeClass("disabled");
+
+    filljoinroom();
 }
+
+function filljoinroom() {
+    var rooms = 0;
+    database.ref().on("child_added", function(snapshot) {
+        if(typeof snapshot.val().created_by === 'string') {
+            if(rooms <= 0) $('#ul_join_room').html('');
+            //console.log(snapshot.val().created_by + ' (' + snapshot.val().date + ')');
+            //$('#ul_join_room').append('<li><a class="room_ref" data-name="' + snapshot.val().created_by + '" data-date="' + snapshot.val().date + '">' + snapshot.val().created_by + ' (' + snapshot.val().date + ')</a></li>');
+            $('#ul_join_room').append('<li><a onclick="initiate_join(\'' + snapshot.val().created_by + '\',\'' + snapshot.val().date + '\',\'' + snapshot.val().reference + '\')">' + snapshot.val().created_by + ' (' + snapshot.val().date + ')</a></li>');
+            rooms++;
+        }
+    });
+}
+
+/*var room_creator;
+var room_date;
+var room_reference;
+function filljoinroom_click(name,date,reference) {
+    room_creator = name;
+    room_date = date;
+    room_reference = reference;
+    initiate_join();
+}*/
 
 function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
@@ -42,223 +91,323 @@ $(document).ready(function() {
         if(room) {
             $('#content').show();
             initiate();
-            console.log(Date.now());
+            //console.log(Date.now());
             room = false;
         }
     });
 });
 
-function initiate() {
-var count = 1;
-var mapArray = new Array;
-var xloc = null;
-$(document).ready(function() {
-    $('#topdropdown').dropdown({
-        inDuration: 300,
-        outDuration: 225,
-        constrain_width: false, // Does not change width of dropdown to that of the activator
-        hover: true, // Activate on hover
-        gutter: 0, // Spacing from edge
-        belowOrigin: false, // Displays dropdown below the button
-        alignment: 'left' // Displays dropdown with edge aligned to the left of button
-    });
+function addMarker(lat,lng,id,index) {
+    var drag = false;
+    if(id === email) {
+        drag = true;
+    }
+    markerOptions = {
+        position: new google.maps.LatLng(lat,lng),
+        draggable: drag,
+        label: count+''
+    };
 
+    console.log(lat + ',' + lng + ' - ' + count + ' - ' + id);
+    marker = new google.maps.Marker(markerOptions);
+    mapArray[count-1] = new Array(count, lat, lng, marker);
 
-    var database = firebase.database();
+    count++;
+    marker.setMap(newMap);
 
-    // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
-    var pos;
-    var newMap;
-    var mapOptions;
-    function myMap() {
-        var infoWindowOptions = {
-            // content: 'BC Testing!'
-        };
-        var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
-        navigator.geolocation.getCurrentPosition(function(position) {
-            pos = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-            infoWindow.setPosition(pos);
-            infoWindow.setContent('You are here.');
-
-            room_timestamp = Date.now();
-            database.ref("/room_" + room_timestamp).set({
-                created_by: name,
-                users: {
-                    user_1: {
-                        id: email,
-                        lat: pos.lat,
-                        lng: pos.lng
-                    }
-                }
-            });
-
-            //console.log(pos.lat + ", " + pos.lng);
-            /*database.ref("/locations_map").push({
-                lat: pos.lat+0.06,
-                lng: pos.lng+0.07,
-            });
-            database.ref("/locations_map").push({
-                lat: pos.lat+0.023,
-                lng: pos.lng+0.093,
-            });*/
-
-            var mapCanvas = $("#mapArea");
-            mapOptions = {
-                center: new google.maps.LatLng(pos.lat, pos.lng),
-                zoom: 12,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-            };
-
-            var acOptions = {
-                types: ['establishment']
-            };
-            newMap = new google.maps.Map(document.getElementById('mapArea'), mapOptions);
-            //autocomplete area
-            var autocomplete = new google.maps.places.Autocomplete(document.getElementById('topSearch'), acOptions);
-            // bindTo is to limit the auto-complete to the bounds of the map
-            autocomplete.bindTo('bounds', newMap);
-
-            addMarker(pos.lat,pos.lng);
-
-            google.maps.event.addListener(autocomplete, 'place_changed', function() {
-                infoWindow.close();
-                var place = autocomplete.getPlace();
-                //console.log(place);
-                if (place.geometry.viewport) {
-                    newMap.fitBounds(place.geometry.viewport);
-                } else {
-                    newMap.setCenter(place.geometry.location);
-                    newMap.setZoom(15);
-                }
-                marker.setPosition(place.geometry.location);
-                infoWindow.setContent('<div><strong>' + place.name + '</strong><br>');
-                infoWindow.open(newMap, marker);
-                google.maps.event.addListener(marker, 'click', function(e) {
-
-                    infoWindow.open(newMap, marker);
-
-                });
-            });
-        });
-    } // end of myMap function
-
-    myMap();
-
-    function addMarker(lat,lng) {
-        markerOptions = {
-            position: new google.maps.LatLng(lat,lng),
-            draggable:true,
-            label: count+''
-        };
-        //var c = count;
-        mapArray[count-1] = new Array(count, lat, lng);
-        //console.log(lat + ',' + lng + ' - ' + count);
-        count++;
-        marker = new google.maps.Marker(markerOptions);
-        marker.setMap(newMap);
-
+    if(id === email) {
         google.maps.event.addListener(marker, 'dragend', function (event) {
-            //console.log(this.getPosition().lat() + ',' + this.getPosition().lng());
-            userChangePosition(this.label,this.getPosition().lat(),this.getPosition().lng());
-            //getMedium();
+            userChangePosition(this.label,this.getPosition().lat(),this.getPosition().lng(),this);
         });
-
-        getMedium();
     }
 
-    function userChangePosition(c, la, lo) {
-        //console.log(c + ',' + la + ',' + lo);
-        mapArray[parseInt(c)-1] = new Array(parseInt(c), la, lo);
-        database.ref("/locations_map").on("child_added", function(snapshot) {
-            //console.log(typeof c + ',' + typeof snapshot.val().user);
-            //console.log(c + ',' + la + ',' + lo);
-            if(parseInt(c)+1 === snapshot.val().user) {
-                snapshot.ref.update({
-                    lat: la,
-                    lng: lo
+    getMedium();
+}
+
+function userChangePosition(c, la, lo, marker) {
+    mapArray[parseInt(c)-1] = new Array(parseInt(c), la, lo, marker);
+    //console.log(mapArray[parseInt(c)-1]);
+    database.ref("/room_" + room_reference + "/users").on("child_added", function(snapshot) {
+        if(email === snapshot.val().id) {
+            snapshot.ref.update({
+                lat: la,
+                lng: lo
+            });
+        }
+    });
+    /*database.ref("/room_" + room_reference + "/users/user_" + c).set({
+        id: email,
+        lat: la,
+        lng: lo,
+        refer: c
+    });*/
+    getMedium();
+}
+
+function getMedium() {
+    if(xloc !== null) {
+        xloc.setMap(null);
+    }
+
+    var avgLat = 0;
+    var avgLng = 0;
+    var j = 0;
+
+    for(var i=0;i<mapArray.length;i++) {
+        avgLat = (avgLat + mapArray[i][1]);
+        avgLng = (avgLng + mapArray[i][2]);
+        j++;
+    }
+
+    avgLat = avgLat / j;
+    avgLng = avgLng / j;
+
+    var markerOptions2 = {
+        position: new google.maps.LatLng(avgLat,avgLng),
+    };
+    var marker2 = new google.maps.Marker(markerOptions2);
+    marker2.setAnimation(google.maps.Animation.BOUNCE);
+    marker2.setMap(newMap);
+
+    xloc = marker2;
+}
+
+function updateMarkers() {
+    for(var i=0;i<mapArray.length;i++) {
+        mapArray[i][3].setMap(null);
+    }
+
+    mapArray = [];
+    count = 1;
+    database.ref("/room_" + room_reference + "/users").on("child_added", function(snapshot) {
+        addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
+    });
+}
+
+function initiate() {
+    room_timestamp = Date.now();
+    room_reference = room_timestamp;
+    $(document).ready(function() {
+        /*$('#topdropdown').dropdown({
+            inDuration: 300,
+            outDuration: 225,
+            constrain_width: false, // Does not change width of dropdown to that of the activator
+            hover: true, // Activate on hover
+            gutter: 0, // Spacing from edge
+            belowOrigin: false, // Displays dropdown below the button
+            alignment: 'left' // Displays dropdown with edge aligned to the left of button
+        });*/
+
+        // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
+        function myMap() {
+            var infoWindowOptions = {
+                // content: 'BC Testing!'
+            };
+            var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+            navigator.geolocation.getCurrentPosition(function(position) {
+                pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                infoWindow.setPosition(pos);
+                infoWindow.setContent('You are here.');
+
+                database.ref("/room_" + room_timestamp).set({
+                    created_by: name,
+                    date: moment().get('month')+1 + '/' + moment().get('date') + '/' + moment().get('year') + ' ' + moment().get('hour') + ':' + moment().get('minute') + ':' + moment().get('second'),
+                    reference: room_timestamp,
+                    users: {
+                        user_1: {
+                            refer: 1,
+                            id: email,
+                            lat: pos.lat,
+                            lng: pos.lng
+                        }
+                    }
                 });
+
+                //console.log(pos.lat + ", " + pos.lng);
+                /*database.ref("/locations_map").push({
+                    lat: pos.lat+0.06,
+                    lng: pos.lng+0.07,
+                });
+                database.ref("/locations_map").push({
+                    lat: pos.lat+0.023,
+                    lng: pos.lng+0.093,
+                });*/
+
+                //var mapCanvas = $("#mapArea");
+                mapOptions = {
+                    center: new google.maps.LatLng(pos.lat, pos.lng),
+                    zoom: 12,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+
+                /*var acOptions = {
+                    types: ['establishment']
+                };*/
+                newMap = new google.maps.Map(document.getElementById('mapArea'), mapOptions);
+                //autocomplete area
+                //var autocomplete = new google.maps.places.Autocomplete(document.getElementById('topSearch'), acOptions);
+                // bindTo is to limit the auto-complete to the bounds of the map
+                //autocomplete.bindTo('bounds', newMap);
+
+                addMarker(pos.lat,pos.lng,email,false);
+
+                /*google.maps.event.addListener(autocomplete, 'place_changed', function() {
+                    infoWindow.close();
+                    var place = autocomplete.getPlace();
+                    //console.log(place);
+                    if (place.geometry.viewport) {
+                        newMap.fitBounds(place.geometry.viewport);
+                    } else {
+                        newMap.setCenter(place.geometry.location);
+                        newMap.setZoom(15);
+                    }
+                    marker.setPosition(place.geometry.location);
+                    infoWindow.setContent('<div><strong>' + place.name + '</strong><br>');
+                    infoWindow.open(newMap, marker);
+                    google.maps.event.addListener(marker, 'click', function(e) {
+
+                        infoWindow.open(newMap, marker);
+
+                    });
+                });*/
+            });
+        } // end of myMap function
+
+        myMap();
+
+        database.ref("/room_" + room_timestamp + "/users").on("child_added", function(snapshot) {
+            addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
+        });
+
+        database.ref("/room_" + room_timestamp + "/users").on("value", function(snapshot) {
+            if(snapshot.val() !== null) {
+                //console.log(snapshot.val().refer + " - " + snapshot.val().lat + " - " + snapshot.val().lng + " - " + snapshot.val().id);
+                updateMarkers();
             }
         });
-        getMedium();
-    }
 
-    /*database.ref("/locations_map").on("child_added", function(snapshot) {
-        addMarker(snapshot.val().lat,snapshot.val().lng);
-        //console.log(snapshot.val());
-    });*/
+        /*$(document).on("click", "#submitButton", function() {
+            var address1 = $("#topSearch").val().trim();
+            console.log(address1);
+            var newAddress = $("<li>");
+            var newDiv = $("<div>");
+            var newIcon = $("<i>");
 
-    database.ref("/room_" + room_timestamp).on("child_added", function(snapshot) {
-        addMarker(snapshot.val().lat,snapshot.val().lng);
-        //console.log(snapshot.val());
+            newDiv.addClass("chip");
+            // adding the "x" next to starting locations
+            newIcon.addClass("close material-icons");
+            newIcon.text("close");
+            newDiv.text(address1);
+            newDiv.append(newIcon);
+            newAddress.html(newDiv);
+            // newAddress.text(address1);
+
+            $("#startingLocationArea").prepend(newAddress);
+            // empty input box after submit is clicked
+            $("#topSearch").val("");
+        });*/
+
+    }); // end of document ready
+}
+
+
+function initiate_join(name,date,reference) {
+    $('#content').show();
+    room_reference = reference;
+
+    var count_users = 1;
+    database.ref("/room_" + reference + '/users').on("child_added", function(snapshot) {
+        count_users++;
     });
 
-    database.ref("/locations_map").on("value", function(snapshot) {
-        getMedium();
-    });
+    $(document).ready(function() {
+        /*$('#topdropdown').dropdown({
+            inDuration: 300,
+            outDuration: 225,
+            constrain_width: false, // Does not change width of dropdown to that of the activator
+            hover: true, // Activate on hover
+            gutter: 0, // Spacing from edge
+            belowOrigin: false, // Displays dropdown below the button
+            alignment: 'left' // Displays dropdown with edge aligned to the left of button
+        });*/
 
-    function getMedium() {
-        if(xloc != null) {
-            xloc.setMap(null);
-        }
-        var avgLat = 0;
-        var avgLng = 0;
-        var j = 0;
+        function myMap1() {
+            var infoWindowOptions = {
+                // content: 'BC Testing!'
+            };
+            var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+            navigator.geolocation.getCurrentPosition(function(position) {
+                pos = {
+                    /*lat: position.coords.latitude,
+                    lng: position.coords.longitude*/
+                    lat: 30.377068600000003,
+                    lng: -97.69365609999999
+                };
+                infoWindow.setPosition(pos);
+                infoWindow.setContent('You are here.');
 
-        for(var i=0;i<mapArray.length;i++) {
-        //for (var i in mapArray) {
-            avgLat = (avgLat + mapArray[i][1]);
-            avgLng = (avgLng + mapArray[i][2]);
-            //console.log(i);
-            j++;
-        }
-        avgLat = avgLat / j;
-        avgLng = avgLng / j;
-        //console.log(avgLat + ',' + avgLng + ' - X');
-        //addMarker(avgLat,avgLng);
+                //console.log(count_users);
+                database.ref("/room_" + reference + "/users/user_"+count_users).set({
+                    refer: count_users,
+                    id: email,
+                    lat: pos.lat,
+                    lng: pos.lng
+                });
 
-        var markerOptions2 = {
-            position: new google.maps.LatLng(avgLat,avgLng),
-            //label: 'X'
-        };
-        var marker2 = new google.maps.Marker(markerOptions2);
-        marker2.setAnimation(google.maps.Animation.BOUNCE);
-        marker2.setMap(newMap);
-        //marker2.metadata = { id: markerId };
-        xloc = marker2;
+                //var mapCanvas = $("#mapArea");
+                mapOptions = {
+                    center: new google.maps.LatLng(pos.lat, pos.lng),
+                    zoom: 12,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
 
-        //getDistanceInfo(avgLat,avgLng);
-    }
+                /*var acOptions = {
+                    types: ['establishment']
+                };*/
+                newMap = new google.maps.Map(document.getElementById('mapArea'), mapOptions);
+                //autocomplete area
+                //var autocomplete = new google.maps.places.Autocomplete(document.getElementById('topSearch'), acOptions);
+                // bindTo is to limit the auto-complete to the bounds of the map
+                //autocomplete.bindTo('bounds', newMap);
 
-    /*setTimeout(function(){
-        database.ref("/locations_map").push({
-            lat: 30.3151369,
-            lng: -97.3840504,
+                addMarker(pos.lat,pos.lng,email,false);
+
+                /*google.maps.event.addListener(autocomplete, 'place_changed', function() {
+                    infoWindow.close();
+                    var place = autocomplete.getPlace();
+                    //console.log(place);
+                    if (place.geometry.viewport) {
+                        newMap.fitBounds(place.geometry.viewport);
+                    } else {
+                        newMap.setCenter(place.geometry.location);
+                        newMap.setZoom(15);
+                    }
+                    marker.setPosition(place.geometry.location);
+                    infoWindow.setContent('<div><strong>' + place.name + '</strong><br>');
+                    infoWindow.open(newMap, marker);
+                    google.maps.event.addListener(marker, 'click', function(e) {
+
+                        infoWindow.open(newMap, marker);
+
+                    });
+                });*/
+            });
+        } // end of myMap function
+
+        myMap1();
+
+        database.ref("/room_" + room_reference + "/users").on("child_added", function(snapshot) {
+            addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
         });
-    }, 5000);*/
 
-    $(document).on("click", "#submitButton", function() {
-        var address1 = $("#topSearch").val().trim();
-        console.log(address1);
-        var newAddress = $("<li>");
-        var newDiv = $("<div>");
-        var newIcon = $("<i>");
-
-        newDiv.addClass("chip");
-        // adding the "x" next to starting locations
-        newIcon.addClass("close material-icons");
-        newIcon.text("close");
-        newDiv.text(address1);
-        newDiv.append(newIcon);
-        newAddress.html(newDiv);
-        // newAddress.text(address1);
-
-        $("#startingLocationArea").prepend(newAddress);
-        // empty input box after submit is clicked
-        $("#topSearch").val("");
-    });
-
-}); // end of document ready
+        database.ref("/room_" + room_reference + "/users").on("value", function(snapshot) {
+            if(snapshot.val() !== null) {
+                //console.log(snapshot.val().refer + " - " + snapshot.val().lat + " - " + snapshot.val().lng + " - " + snapshot.val().id);
+                updateMarkers();
+            }
+        });
+    }); // end of document ready
 }
