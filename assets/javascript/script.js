@@ -33,6 +33,7 @@ var newMap;
 var mapOptions;
 
 var marker_first = 0;
+var interval = 0;
 
 function onSignIn(googleUser) {
     profile = googleUser.getBasicProfile();
@@ -95,6 +96,34 @@ $(document).ready(function() {
             room = false;
         }
     });
+
+    $('#happy_msg').keypress(function(event) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13' && $('#happy_msg').val() != ''){
+            database.ref("/room_" + room_reference + "/chat").push({
+                id: email,
+                time: moment().get('hour') + ':' + moment().get('minute') + ':' + moment().get('second'),
+                msg: $('#happy_msg').val()
+            });
+            $('#happy_msg').val('');
+        }
+    });
+
+    /*database.ref("/room_" + room_reference + "/chat").on("value", function(snapshot) {
+        if(snapshot.val() !== null) {
+            updateChat();
+        }
+    });*/
+
+    //function updateChat() {
+        /*database.ref("/room_" + room_reference + "/chat").on("child_added", function(snapshot) {
+            console.log('okok');
+            var color_class;
+            if(snapshot.val().id == email) color_class = "msg_id_owner";
+            else color_class = "msg_id";
+            $('#happy_chat').append('<div class="msg"><span class="' + color_class + '">' + snapshot.val().id + '</span><br><span class="msg_msg"><a title="' + snapshot.val().time + '">' + snapshot.val().msg + '</a></span></div>');
+        });*/
+    //}
 });
 
 function addMarker(lat,lng,id,index) {
@@ -108,9 +137,11 @@ function addMarker(lat,lng,id,index) {
         label: count+''
     };
 
-    console.log(lat + ',' + lng + ' - ' + count + ' - ' + id);
+    //console.log(lat + ',' + lng + ' - ' + count + ' - ' + id);
     marker = new google.maps.Marker(markerOptions);
     mapArray[count-1] = new Array(count, lat, lng, marker);
+
+    $('#list_users').append('<li><strong>' + count + '</strong>: ' + id + '</li>');
 
     count++;
     marker.setMap(newMap);
@@ -166,7 +197,7 @@ function getMedium() {
         position: new google.maps.LatLng(avgLat,avgLng),
     };
     var marker2 = new google.maps.Marker(markerOptions2);
-    marker2.setAnimation(google.maps.Animation.BOUNCE);
+    //marker2.setAnimation(google.maps.Animation.BOUNCE);
     marker2.setMap(newMap);
 
     xloc = marker2;
@@ -178,6 +209,7 @@ function updateMarkers() {
     }
 
     mapArray = [];
+    $('#list_users').html('');
     count = 1;
     database.ref("/room_" + room_reference + "/users").on("child_added", function(snapshot) {
         addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
@@ -198,6 +230,34 @@ function initiate() {
             alignment: 'left' // Displays dropdown with edge aligned to the left of button
         });*/
 
+        var same_user = '';
+        database.ref("/room_" + room_reference + "/chat").on("child_added", function(snapshot) {
+            var color_class;
+
+            if(same_user === snapshot.val().id) {
+                $('#happy_chat').append('<div class="msg_same"><span class="msg_msg"><a title="' + snapshot.val().time + '">' + snapshot.val().msg + '</a></span></div>');
+            } else {
+                if(snapshot.val().id == email) color_class = "msg_id_owner";
+                else color_class = "msg_id";
+                $('#happy_chat').append('<div class="msg"><span class="' + color_class + '">' + snapshot.val().id + '</span><br><span class="msg_msg"><a title="' + snapshot.val().time + '">' + snapshot.val().msg + '</a></span></div>');
+            }
+
+            same_user = snapshot.val().id;
+            var n = $('#happy_chat').height();
+            $('#happy_chat').animate({ scrollTop: n }, 50);
+        });
+
+        database.ref("/room_" + room_timestamp + "/users").on("child_added", function(snapshot) {
+            addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
+        });
+
+        database.ref("/room_" + room_timestamp + "/users").on("value", function(snapshot) {
+            if(snapshot.val() !== null) {
+                //console.log(snapshot.val().refer + " - " + snapshot.val().lat + " - " + snapshot.val().lng + " - " + snapshot.val().id);
+                updateMarkers();
+            }
+        });
+
         // googmaps api key AIzaSyBQATEiEDSZipTwdCzAE3oHxn6GwQKR5gQ
         function myMap() {
             var infoWindowOptions = {
@@ -216,6 +276,7 @@ function initiate() {
                     created_by: name,
                     date: moment().get('month')+1 + '/' + moment().get('date') + '/' + moment().get('year') + ' ' + moment().get('hour') + ':' + moment().get('minute') + ':' + moment().get('second'),
                     reference: room_timestamp,
+                    chat: {},
                     users: {
                         user_1: {
                             refer: 1,
@@ -252,7 +313,7 @@ function initiate() {
                 // bindTo is to limit the auto-complete to the bounds of the map
                 //autocomplete.bindTo('bounds', newMap);
 
-                addMarker(pos.lat,pos.lng,email,false);
+                //addMarker(pos.lat,pos.lng,email,false);
 
                 /*google.maps.event.addListener(autocomplete, 'place_changed', function() {
                     infoWindow.close();
@@ -278,17 +339,12 @@ function initiate() {
 
         myMap();
 
-        database.ref("/room_" + room_timestamp + "/users").on("child_added", function(snapshot) {
-            addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
-        });
-
-        database.ref("/room_" + room_timestamp + "/users").on("value", function(snapshot) {
-            if(snapshot.val() !== null) {
-                //console.log(snapshot.val().refer + " - " + snapshot.val().lat + " - " + snapshot.val().lng + " - " + snapshot.val().id);
+        setInterval(function(){
+            if(interval < 5) {
                 updateMarkers();
+                interval++;
             }
-        });
-
+        }, 2000);
         /*$(document).on("click", "#submitButton", function() {
             var address1 = $("#topSearch").val().trim();
             console.log(address1);
@@ -317,6 +373,34 @@ function initiate() {
 function initiate_join(name,date,reference) {
     $('#content').show();
     room_reference = reference;
+
+    var same_user = '';
+    database.ref("/room_" + room_reference + "/chat").on("child_added", function(snapshot) {
+        var color_class;
+
+        if(same_user === snapshot.val().id) {
+            $('#happy_chat').append('<div class="msg_same"><span class="msg_msg"><a title="' + snapshot.val().time + '">' + snapshot.val().msg + '</a></span></div>');
+        } else {
+            if(snapshot.val().id == email) color_class = "msg_id_owner";
+            else color_class = "msg_id";
+            $('#happy_chat').append('<div class="msg"><span class="' + color_class + '">' + snapshot.val().id + '</span><br><span class="msg_msg"><a title="' + snapshot.val().time + '">' + snapshot.val().msg + '</a></span></div>');
+        }
+
+        same_user = snapshot.val().id;
+        var n = $('#happy_chat').height();
+        $('#happy_chat').animate({ scrollTop: n }, 50);
+    });
+
+    database.ref("/room_" + room_reference + "/users").on("child_added", function(snapshot) {
+        addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
+    });
+
+    database.ref("/room_" + room_reference + "/users").on("value", function(snapshot) {
+        if(snapshot.val() !== null) {
+            //console.log(snapshot.val().refer + " - " + snapshot.val().lat + " - " + snapshot.val().lng + " - " + snapshot.val().id);
+            updateMarkers();
+        }
+    });
 
     var count_users = 1;
     database.ref("/room_" + reference + '/users').on("child_added", function(snapshot) {
@@ -373,7 +457,7 @@ function initiate_join(name,date,reference) {
                 // bindTo is to limit the auto-complete to the bounds of the map
                 //autocomplete.bindTo('bounds', newMap);
 
-                addMarker(pos.lat,pos.lng,email,false);
+                //addMarker(pos.lat,pos.lng,email,false);
 
                 /*google.maps.event.addListener(autocomplete, 'place_changed', function() {
                     infoWindow.close();
@@ -399,15 +483,11 @@ function initiate_join(name,date,reference) {
 
         myMap1();
 
-        database.ref("/room_" + room_reference + "/users").on("child_added", function(snapshot) {
-            addMarker(snapshot.val().lat,snapshot.val().lng,snapshot.val().id,false);
-        });
-
-        database.ref("/room_" + room_reference + "/users").on("value", function(snapshot) {
-            if(snapshot.val() !== null) {
-                //console.log(snapshot.val().refer + " - " + snapshot.val().lat + " - " + snapshot.val().lng + " - " + snapshot.val().id);
+        setInterval(function(){
+            if(interval < 5) {
                 updateMarkers();
+                interval++;
             }
-        });
+        }, 2000);
     }); // end of document ready
 }
