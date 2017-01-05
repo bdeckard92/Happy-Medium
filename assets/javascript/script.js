@@ -31,6 +31,9 @@ var mapArray = new Array;
 var pos;
 var newMap;
 var mapOptions;
+var service;
+var bounds;
+var bounds_markes = new Array;
 
 var marker_first = 0;
 var interval = 0;
@@ -55,7 +58,7 @@ function onSignIn(googleUser) {
 function filljoinroom() {
     var rooms = 0;
     database.ref().on("child_added", function(snapshot) {
-        if(typeof snapshot.val().created_by === 'string') {
+        if(typeof snapshot.val().created_by === 'string' && snapshot.val() !== null) {
             if(rooms <= 0) $('#ul_join_room').html('');
             //console.log(snapshot.val().created_by + ' (' + snapshot.val().date + ')');
             //$('#ul_join_room').append('<li><a class="room_ref" data-name="' + snapshot.val().created_by + '" data-date="' + snapshot.val().date + '">' + snapshot.val().created_by + ' (' + snapshot.val().date + ')</a></li>');
@@ -201,6 +204,57 @@ function getMedium() {
     marker2.setMap(newMap);
 
     xloc = marker2;
+
+    if(count > 2) {
+        service = new google.maps.places.PlacesService(newMap);
+        service.nearbySearch({
+            location: new google.maps.LatLng(avgLat,avgLng),
+            radius: 300,
+            types: ['cafe','restaurant']
+        }, processResults);
+    }
+}
+
+function processResults(results, status) {
+    if(status == google.maps.places.PlacesServiceStatus.OK) {
+        createMarkers(results);
+    }
+}
+
+function createMarkers(places) {
+    for (var i = 0; i < bounds_markes.length; i++) {
+        bounds_markes[i].setMap(null);
+    }
+
+    $('#meeting_places').html('');
+    bounds = new google.maps.LatLngBounds();
+
+    for (var i = 0, place; place = places[i]; i++) {
+        if(i >= 6) break;
+        var image = {
+            url: place.icon,
+            size: new google.maps.Size(71, 71),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(17, 34),
+            scaledSize: new google.maps.Size(25, 25)
+        };
+
+        var marker = new google.maps.Marker({
+            map: newMap,
+            icon: image,
+            title: place.name,
+            position: place.geometry.location
+        });
+
+        bounds_markes.push(marker);
+
+        //console.log(place);
+
+        $('#meeting_places').append('<li><a title="' + place.vicinity + '">' + place.name + '</a></li>');
+
+        bounds.extend(place.geometry.location);
+    }
+    //newMap.fitBounds(bounds);
 }
 
 function updateMarkers() {
@@ -425,10 +479,10 @@ function initiate_join(name,date,reference) {
             var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
             navigator.geolocation.getCurrentPosition(function(position) {
                 pos = {
-                    /*lat: position.coords.latitude,
-                    lng: position.coords.longitude*/
-                    lat: 30.377068600000003,
-                    lng: -97.69365609999999
+                    lat: position.coords.latitude + (count_users / 100),
+                    lng: position.coords.longitude + (count_users / 100)
+                    /*lat: 30.377068600000003 ,
+                    lng: -97.69365609999999*/
                 };
                 infoWindow.setPosition(pos);
                 infoWindow.setContent('You are here.');
