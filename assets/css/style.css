@@ -130,3 +130,7 @@ nav ul a:hover {
 .msg a {
     text-decoration: none;
 }
+
+.places {
+    cursor: pointer;
+}

@@ -8,16 +8,6 @@ var config = {
 firebase.initializeApp(config);
 var database = firebase.database();
 
-/*$(document).ready(function() {
-    $('#join_room').hover(function() {
-        $('#ul_join_room').show();
-    });
-
-    $('#ul_join_room').on("mouseout", function() {
-        $('#ul_join_room').hide();
-    });
-});*/
-
 $('.g-signin2').trigger();
 var profile = '';
 var name = null;
@@ -34,6 +24,11 @@ var mapOptions;
 var service;
 var bounds;
 var bounds_markes = new Array;
+var user_ref;
+var avgLat = 0;
+var avgLng = 0;
+var directionsService;
+var directionsDisplay;
 
 var marker_first = 0;
 var interval = 0;
@@ -68,16 +63,6 @@ function filljoinroom() {
     });
 }
 
-/*var room_creator;
-var room_date;
-var room_reference;
-function filljoinroom_click(name,date,reference) {
-    room_creator = name;
-    room_date = date;
-    room_reference = reference;
-    initiate_join();
-}*/
-
 function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
     auth2.signOut().then(function () {
@@ -111,22 +96,6 @@ $(document).ready(function() {
             $('#happy_msg').val('');
         }
     });
-
-    /*database.ref("/room_" + room_reference + "/chat").on("value", function(snapshot) {
-        if(snapshot.val() !== null) {
-            updateChat();
-        }
-    });*/
-
-    //function updateChat() {
-        /*database.ref("/room_" + room_reference + "/chat").on("child_added", function(snapshot) {
-            console.log('okok');
-            var color_class;
-            if(snapshot.val().id == email) color_class = "msg_id_owner";
-            else color_class = "msg_id";
-            $('#happy_chat').append('<div class="msg"><span class="' + color_class + '">' + snapshot.val().id + '</span><br><span class="msg_msg"><a title="' + snapshot.val().time + '">' + snapshot.val().msg + '</a></span></div>');
-        });*/
-    //}
 });
 
 function addMarker(lat,lng,id,index) {
@@ -183,8 +152,8 @@ function getMedium() {
         xloc.setMap(null);
     }
 
-    var avgLat = 0;
-    var avgLng = 0;
+    avgLat = 0;
+    avgLng = 0;
     var j = 0;
 
     for(var i=0;i<mapArray.length;i++) {
@@ -248,9 +217,9 @@ function createMarkers(places) {
 
         bounds_markes.push(marker);
 
-        //console.log(place);
+        //console.log(place.geometry.viewport.f.b + ', ' + place.geometry.viewport.b.b);
 
-        $('#meeting_places').append('<li><a title="' + place.vicinity + '">' + place.name + '</a></li>');
+        $('#meeting_places').append('<li><a class="places" title="' + place.vicinity + '" onclick="calcRoute(' + place.geometry.viewport.f.b + ',' + place.geometry.viewport.b.b + ')">' + place.name + '</a></li>');
 
         bounds.extend(place.geometry.location);
     }
@@ -270,20 +239,27 @@ function updateMarkers() {
     });
 }
 
+function calcRoute(la,lo) {
+    directionsDisplay.setMap(null);
+    directionsService = new google.maps.DirectionsService();
+    directionsDisplay = new google.maps.DirectionsRenderer();
+    var request = {
+        origin: new google.maps.LatLng(mapArray[user_ref-1][1], mapArray[user_ref-1][2]),
+        destination: new google.maps.LatLng(la, lo),
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+    directionsService.route(request, function(response, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(response);
+        }
+    });
+    directionsDisplay.setMap(newMap);
+}
+
 function initiate() {
     room_timestamp = Date.now();
     room_reference = room_timestamp;
     $(document).ready(function() {
-        /*$('#topdropdown').dropdown({
-            inDuration: 300,
-            outDuration: 225,
-            constrain_width: false, // Does not change width of dropdown to that of the activator
-            hover: true, // Activate on hover
-            gutter: 0, // Spacing from edge
-            belowOrigin: false, // Displays dropdown below the button
-            alignment: 'left' // Displays dropdown with edge aligned to the left of button
-        });*/
-
         var same_user = '';
         database.ref("/room_" + room_reference + "/chat").on("child_added", function(snapshot) {
             var color_class;
@@ -325,6 +301,7 @@ function initiate() {
                 };
                 infoWindow.setPosition(pos);
                 infoWindow.setContent('You are here.');
+                user_ref = 1;
 
                 database.ref("/room_" + room_timestamp).set({
                     created_by: name,
@@ -341,53 +318,13 @@ function initiate() {
                     }
                 });
 
-                //console.log(pos.lat + ", " + pos.lng);
-                /*database.ref("/locations_map").push({
-                    lat: pos.lat+0.06,
-                    lng: pos.lng+0.07,
-                });
-                database.ref("/locations_map").push({
-                    lat: pos.lat+0.023,
-                    lng: pos.lng+0.093,
-                });*/
-
-                //var mapCanvas = $("#mapArea");
                 mapOptions = {
                     center: new google.maps.LatLng(pos.lat, pos.lng),
                     zoom: 12,
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 };
 
-                /*var acOptions = {
-                    types: ['establishment']
-                };*/
                 newMap = new google.maps.Map(document.getElementById('mapArea'), mapOptions);
-                //autocomplete area
-                //var autocomplete = new google.maps.places.Autocomplete(document.getElementById('topSearch'), acOptions);
-                // bindTo is to limit the auto-complete to the bounds of the map
-                //autocomplete.bindTo('bounds', newMap);
-
-                //addMarker(pos.lat,pos.lng,email,false);
-
-                /*google.maps.event.addListener(autocomplete, 'place_changed', function() {
-                    infoWindow.close();
-                    var place = autocomplete.getPlace();
-                    //console.log(place);
-                    if (place.geometry.viewport) {
-                        newMap.fitBounds(place.geometry.viewport);
-                    } else {
-                        newMap.setCenter(place.geometry.location);
-                        newMap.setZoom(15);
-                    }
-                    marker.setPosition(place.geometry.location);
-                    infoWindow.setContent('<div><strong>' + place.name + '</strong><br>');
-                    infoWindow.open(newMap, marker);
-                    google.maps.event.addListener(marker, 'click', function(e) {
-
-                        infoWindow.open(newMap, marker);
-
-                    });
-                });*/
             });
         } // end of myMap function
 
@@ -399,27 +336,6 @@ function initiate() {
                 interval++;
             }
         }, 2000);
-        /*$(document).on("click", "#submitButton", function() {
-            var address1 = $("#topSearch").val().trim();
-            console.log(address1);
-            var newAddress = $("<li>");
-            var newDiv = $("<div>");
-            var newIcon = $("<i>");
-
-            newDiv.addClass("chip");
-            // adding the "x" next to starting locations
-            newIcon.addClass("close material-icons");
-            newIcon.text("close");
-            newDiv.text(address1);
-            newDiv.append(newIcon);
-            newAddress.html(newDiv);
-            // newAddress.text(address1);
-
-            $("#startingLocationArea").prepend(newAddress);
-            // empty input box after submit is clicked
-            $("#topSearch").val("");
-        });*/
-
     }); // end of document ready
 }
 
@@ -462,16 +378,6 @@ function initiate_join(name,date,reference) {
     });
 
     $(document).ready(function() {
-        /*$('#topdropdown').dropdown({
-            inDuration: 300,
-            outDuration: 225,
-            constrain_width: false, // Does not change width of dropdown to that of the activator
-            hover: true, // Activate on hover
-            gutter: 0, // Spacing from edge
-            belowOrigin: false, // Displays dropdown below the button
-            alignment: 'left' // Displays dropdown with edge aligned to the left of button
-        });*/
-
         function myMap1() {
             var infoWindowOptions = {
                 // content: 'BC Testing!'
@@ -486,6 +392,7 @@ function initiate_join(name,date,reference) {
                 };
                 infoWindow.setPosition(pos);
                 infoWindow.setContent('You are here.');
+                user_ref = count_users;
 
                 //console.log(count_users);
                 database.ref("/room_" + reference + "/users/user_"+count_users).set({
@@ -495,43 +402,13 @@ function initiate_join(name,date,reference) {
                     lng: pos.lng
                 });
 
-                //var mapCanvas = $("#mapArea");
                 mapOptions = {
                     center: new google.maps.LatLng(pos.lat, pos.lng),
                     zoom: 12,
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 };
 
-                /*var acOptions = {
-                    types: ['establishment']
-                };*/
                 newMap = new google.maps.Map(document.getElementById('mapArea'), mapOptions);
-                //autocomplete area
-                //var autocomplete = new google.maps.places.Autocomplete(document.getElementById('topSearch'), acOptions);
-                // bindTo is to limit the auto-complete to the bounds of the map
-                //autocomplete.bindTo('bounds', newMap);
-
-                //addMarker(pos.lat,pos.lng,email,false);
-
-                /*google.maps.event.addListener(autocomplete, 'place_changed', function() {
-                    infoWindow.close();
-                    var place = autocomplete.getPlace();
-                    //console.log(place);
-                    if (place.geometry.viewport) {
-                        newMap.fitBounds(place.geometry.viewport);
-                    } else {
-                        newMap.setCenter(place.geometry.location);
-                        newMap.setZoom(15);
-                    }
-                    marker.setPosition(place.geometry.location);
-                    infoWindow.setContent('<div><strong>' + place.name + '</strong><br>');
-                    infoWindow.open(newMap, marker);
-                    google.maps.event.addListener(marker, 'click', function(e) {
-
-                        infoWindow.open(newMap, marker);
-
-                    });
-                });*/
             });
         } // end of myMap function
 
