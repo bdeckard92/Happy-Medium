@@ -1,34 +1,68 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style type="text/css">
-      #map {
-        height: 100%;
-      }
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
+<script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+<script type="text/javascript"
+          src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js">
+  </script>
+<script type="text/javascript" src="assets/javascript/gmaps.js">
+</script>
+
+<body>
+    <style media="screen">
+        html,
+        body,
+        #map {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #map {
+            background: #58B;
+        }
     </style>
-    <title>New Map</title>
-    <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
-    <script type="text/javascript" src="assets/javascript/script-testing.js"></script>
-  </head>
-  <body>
-    <div id="map"></div>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvm78D7DHW5iI48ic43_fLLZ9fw61olds&libraries=visualization&callback=initMap">
+
+    <h1>My First Google Map</h1>
+    <div id="floating-panel">
+        <input id="address" type="textbox" value="">
+        <input id="submit" type="button" value="Geocode">
+    </div>
+    <div id="map" style="width:500px;height:500px"></div>
+
+    <script>
+    var geocoder;
+    var map;
+    var marker;
+        function myMap() {
+             map = new GMaps({
+                div: '#map',
+                lat: -12.043333,
+                lng: -77.028333
+            });
+            // When submit button is pressed GeoCode the location entered into the box
+            $('#submit').on("click", function(e) {
+                e.preventDefault();
+                GMaps.geocode({
+                    address: $('#address').val().trim(),
+                    callback: function(results, status) {
+                        if (status == 'OK') {
+                            var latlng = results[0].geometry.location;
+                            map.setCenter(latlng.lat(), latlng.lng());
+                            map.addMarker({
+                                lat: latlng.lat(),
+                                lng: latlng.lng()
+                            });
+                        }
+                    }
+                });
+            });
+        } // end of myMap function
+
+
     </script>
 
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDX5nt52jDcB6fCkvZKlsULs0i7VdUs6WI&callback=myMap"></script>
 
+</body>
 
-
-
-    /**
-     * The JavaScript code that creates the firebase map goes between the empty script tags below.
-     */
-    <!-- <script>firebasemap.js</script> -->
-
-  </body>
 </html>
