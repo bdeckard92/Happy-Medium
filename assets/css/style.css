@@ -134,3 +134,12 @@ nav ul a:hover {
 .places {
     cursor: pointer;
 }
+
+#ul_join_room {
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+#ul_join_room::-webkit-scrollbar {
+    width: 1em;
+}

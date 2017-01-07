@@ -52,15 +52,19 @@ function onSignIn(googleUser) {
 
 function filljoinroom() {
     var rooms = 0;
+    //var roomArray = new Array;
     database.ref().on("child_added", function(snapshot) {
         if(typeof snapshot.val().created_by === 'string' && snapshot.val() !== null) {
             if(rooms <= 0) $('#ul_join_room').html('');
-            //console.log(snapshot.val().created_by + ' (' + snapshot.val().date + ')');
-            //$('#ul_join_room').append('<li><a class="room_ref" data-name="' + snapshot.val().created_by + '" data-date="' + snapshot.val().date + '">' + snapshot.val().created_by + ' (' + snapshot.val().date + ')</a></li>');
             $('#ul_join_room').append('<li><a onclick="initiate_join(\'' + snapshot.val().created_by + '\',\'' + snapshot.val().date + '\',\'' + snapshot.val().reference + '\')">' + snapshot.val().created_by + ' (' + snapshot.val().date + ')</a></li>');
+            //roomArray[rooms] = '<li><a onclick="initiate_join(\'' + snapshot.val().created_by + '\',\'' + snapshot.val().date + '\',\'' + snapshot.val().reference + '\')">' + snapshot.val().created_by + ' (' + snapshot.val().date + ')</a></li>';
             rooms++;
         }
     });
+
+    /*for(var i=roomArray.length-1;i<=0;i--) {
+        $('#ul_join_room').append(roomArray[i]);
+    }*/
 }
 
 function signOut() {
@@ -96,6 +100,11 @@ $(document).ready(function() {
             $('#happy_msg').val('');
         }
     });
+
+    $('#ul_join_room').click(function() {
+        var n = $('#ul_join_room').height();
+        $('#ul_join_room').animate({ scrollTop: n }, 50);
+    })
 });
 
 function addMarker(lat,lng,id,index) {
@@ -178,7 +187,7 @@ function getMedium() {
         service = new google.maps.places.PlacesService(newMap);
         service.nearbySearch({
             location: new google.maps.LatLng(avgLat,avgLng),
-            radius: 300,
+            radius: 500,
             types: ['cafe','restaurant']
         }, processResults);
     }
@@ -198,30 +207,32 @@ function createMarkers(places) {
     $('#meeting_places').html('');
     bounds = new google.maps.LatLngBounds();
 
+    var c = 0;
     for (var i = 0, place; place = places[i]; i++) {
-        if(i >= 6) break;
-        var image = {
-            url: place.icon,
-            size: new google.maps.Size(71, 71),
-            origin: new google.maps.Point(0, 0),
-            anchor: new google.maps.Point(17, 34),
-            scaledSize: new google.maps.Size(25, 25)
-        };
+        if(typeof place.geometry.viewport.f.b != 'undefined' && typeof place.geometry.viewport.b.b != 'undefined') {
+            if(c >= 6) break;
+            var image = {
+                url: place.icon,
+                size: new google.maps.Size(71, 71),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(17, 34),
+                scaledSize: new google.maps.Size(25, 25)
+            };
 
-        var marker = new google.maps.Marker({
-            map: newMap,
-            icon: image,
-            title: place.name,
-            position: place.geometry.location
-        });
+            var marker = new google.maps.Marker({
+                map: newMap,
+                icon: image,
+                title: place.name,
+                position: place.geometry.location
+            });
 
-        bounds_markes.push(marker);
+            bounds_markes.push(marker);
 
-        //console.log(place.geometry.viewport.f.b + ', ' + place.geometry.viewport.b.b);
+            $('#meeting_places').append('<li><a class="places" title="' + place.vicinity + '" onclick="calcRoute(' + place.geometry.viewport.f.b + ',' + place.geometry.viewport.b.b + ')">' + place.name + '</a></li>');
 
-        $('#meeting_places').append('<li><a class="places" title="' + place.vicinity + '" onclick="calcRoute(' + place.geometry.viewport.f.b + ',' + place.geometry.viewport.b.b + ')">' + place.name + '</a></li>');
-
-        bounds.extend(place.geometry.location);
+            bounds.extend(place.geometry.location);
+            c++;
+        }
     }
     //newMap.fitBounds(bounds);
 }
@@ -240,9 +251,10 @@ function updateMarkers() {
 }
 
 function calcRoute(la,lo) {
-    directionsDisplay.setMap(null);
     directionsService = new google.maps.DirectionsService();
     directionsDisplay = new google.maps.DirectionsRenderer();
+    directionsDisplay.setMap(null);
+    directionsDisplay.setDirections(null);
     var request = {
         origin: new google.maps.LatLng(mapArray[user_ref-1][1], mapArray[user_ref-1][2]),
         destination: new google.maps.LatLng(la, lo),
@@ -253,10 +265,14 @@ function calcRoute(la,lo) {
             directionsDisplay.setDirections(response);
         }
     });
+    //console.log(directionsDisplay);
     directionsDisplay.setMap(newMap);
 }
 
 function initiate() {
+    $('#create_room').addClass("disabled");
+    $('#join_room').addClass("disabled");
+
     room_timestamp = Date.now();
     room_reference = room_timestamp;
     $(document).ready(function() {
@@ -341,6 +357,9 @@ function initiate() {
 
 
 function initiate_join(name,date,reference) {
+    $('#create_room').addClass("disabled");
+    $('#join_room').addClass("disabled");
+
     $('#content').show();
     room_reference = reference;
 
