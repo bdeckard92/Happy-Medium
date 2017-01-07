@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>About - Happy Medium</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
+    <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+    <!--<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>-->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBW4fuvgb119VPdeEAb61U3KFHVTXkdQvE&sensor=false&libraries=places"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/javascript/script.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <!-- Brand and toggle get grouped for better mobile display -->
+                        <div class="navbar-header">
+                            <a class="navbar-brand" href="index.html">Happy Medium</a>
+                        </div>
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                            <ul class="nav navbar-nav">
+                                <li id="create_room" class="disabled"><a>Start a Room</a></li>
+                                <li id="join_room" class="dropdown disabled">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Join a Room<span class="caret"></span></a>
+                                    <ul id="ul_join_room" class="dropdown-menu">
+                                        <li><a>No rooms created</a></li>
+                                    </ul>
+                                </li>
+                                <li class="hl"><a src="about.html">About</a></li>
+                                <li id="sign_out" class="disabled"><a onclick="signOut();">Sign out</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- middle section -->
+    <div class="container">
+        <div class="row">
+            <h1>About</h1>
+            <p>
+                Happy Medium is an application that simplifies deciding meeting places. Rooms are created where users share their current
+                location, which determine the fairest options for places to meet. Our soon-to-be patented fairness algorithm
+                is based on several factors: number of users, their vicinity, and commute distance.
+            </p>
+            <p>Happy Medium takes the stress out of finding a meeting place everyone can agree on. Let us think for you, so
+                you don't have to.</p>
+            <h2>Team</h2>
+            <p>Wellington Fernandes, Brian Chang, Bob Deckard, Robert Lovelett</p>
+            <h2>Extra Credit:</h2>
+            <p>“doot da doot da doOoOo” - Osei Bonsu</p>
+        </div>
+    </div>
+</body>
+
+</html>
